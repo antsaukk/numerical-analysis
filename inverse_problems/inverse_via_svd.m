@@ -51,7 +51,7 @@ grid on
 % zero mean and standard deviation 0.1. 
 % Plot the obtained approximations and compare them with the exact derivative. 
 % Does the use of the pseudoinverse give reasonable results in both cases?
-t = linspace(1/N, 1, N);
+t = linspace(1/N, T, N);
 g = (2 * cos(pi*t) .* sin(4*pi*t).^2 - 10 * t.^2)';
 f = -2 * pi * sin(pi*t) .* sin(4*pi*t).^2 + 16 * pi * sin(4*pi*t) .* cos(4*pi*t) .* cos(pi*t) - 20*t;
 
@@ -90,8 +90,9 @@ hold off
 
 % we observe that solutions without Gaussian noise is almost perfect
 % approximation of the analytical derivative, while solution with gaussian
-% noise is very distored. Clearly, the second solution is not really
-% reasonable, while the first one might be just too good.
+% noise is very distorted. Clearly, the second solution is not really
+% reasonable, while the first one might be just too good and an 
+% abscence of noise is not really realistic.
 %%
 % (e)
 % Try an alternative approach and approximately solve (1) in the noisy case
