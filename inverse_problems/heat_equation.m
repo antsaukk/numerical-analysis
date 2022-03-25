@@ -62,7 +62,7 @@ for z = Z
         delta = delta - f/df;
         
         % stopping criteria
-        run = (f > stop);
+        run = (abs(f) > stop);
     end
     K = [A; sqrt(delta)*eye(N-1)];
     
@@ -121,4 +121,28 @@ plot(x, f2, 'LineWidth', 1);
 title('Analytical form of initial heat distrbutions')
 legend('f1', 'f2')
 grid on;
-hold off 
+hold off
+
+figure(5)
+hold on
+plot(x, f1, 'LineWidth', 1);
+plot(x, f2, 'LineWidth', 1);
+plot(x, F(1,:), '--', 'LineWidth', 1);
+plot(x, F(2,:), 'b-', 'LineWidth', 1);
+title('Analytical form of initial heat distrbutions and reconstructed solutions')
+legend('f1', 'f2', 'F1', 'F2')
+grid on;
+hold off
+
+% As we can observe, the reconstructed solutions of initial heat 
+% distributions are almost indistinguishable. The reason for that can be 
+% explained in the following way: 
+% Observe that analytical forms of initial 
+% distributions f1 and f2 are only different by the 2sin(8.5*(x-pi)). Thus,
+% when we compare the final temperature distributions corresponding to the 
+% two initial states, their difference will be exponentially small, which
+% can be derived using the solution given by Fourier coefficients. Since
+% the difference in final heat distributions with respect to the two
+% initial states is exponentially small, the information about component
+% 2sin(8.5*(x-pi)) is lost due to the presence of measurement errors and
+% therefore, reconstructed distributions are indistinguishable.
