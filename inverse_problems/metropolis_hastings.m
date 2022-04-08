@@ -37,7 +37,7 @@ for gamma = [0.001, 0.01, 0.05, 0.1, 0.3, 0.5, 1, 5]
     posterior        = zeros(size(compl_pl));                        % value of posterior at every grid point
     acceptance_rate  = 0;                                            % acceptance rate
 
-    xk = 0.3 + 0.1i;
+    xk = 0 + 0i;                                                     % starting point of random walk
     for k = 1:N
         z   = F(xk);                                                 % Given x, compute F(x)
         w   = gamma * randn(1, 2);                                   % Draw W from N(0, gamma^2*I)
