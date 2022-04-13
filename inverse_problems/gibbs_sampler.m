@@ -4,9 +4,10 @@ close all;
 % particle moving in the unit disk
 %% Preallocations
 f        = @(x,p) 1./abs(x-p);                                                   % charge potential function
-post     = @(x,q,v,s,p) exp(-norm(v-q*f(x,p))^2/(2*s^2));                        % sampling posterior distribution
+post     = @(x,q,v,s,p) (abs(x)<=1) * exp(-norm(v-q*f(x,p))^2/(2*s^2));          % sampling posterior distribution
 
 N        = 10000;                                                                % number of samples
+dim      = 2;                                                                    % number of dimensions
 
 q        = 1;                                                                    % charge of particle
 x0       = 0.5 + 0.4i;                                                           % location of the particle
@@ -14,23 +15,76 @@ sigma    = 0.15;                                                                
 n        = 3;                                                                    % number of sensors
 theta    = linspace(0, 2*pi, n+1);                                               % uniform intervals
 p        = exp(1i*theta(1:end-1));                                               % sensor locations
-sigma_n  = sigma*abs(max(f(x0,p)));                                              % noise in measurement
+sigma_n  = sigma*max(abs(f(x0,p)));                                              % noise in measurement
 v        = q*f(x0,p) + sigma_n*randn(n, 1);                                      % measurement with noise
 
 t        = 0:pi/50:2*pi;                                                         % points to generate boundary of unit disk
 
-xgp      = -1:0.01:1;                                                            % x-grid points
+xgp      = -1:0.001:1;                                                           % x-grid points
 ygp      = xgp;                                                                  % y-grid points
 [X, Y]   = meshgrid(xgp, ygp);                                                   % grid
-compl_pl = complex(X, Y);    
+compl_pl = complex(X, Y);                                                        % discretized complex plane
+XYgp_com = [complex(xgp,0); complex(0,ygp)];                                     % complex absciss and ordinate for samplig from cond. density
 %% Gibbs Sampler
 sample_histories = zeros(N, 2);                                                  % record sample histories
 posterior        = zeros(size(compl_pl));                                        % value of posterior at every grid point
+C_density        = zeros(size(XYgp_com(1,:)));                                   % values to evalue conditional density over integration line
 
-xk = [0, 0i];
+xk = [0+0.1i, 0.1+0i];
 for k = 1:N
-    y = zeros(1, 2);
-    for j = [1, 2]
+    y = zeros(dim, 1);
+    for j = [1, 2]                                                               
+        I_line  = XYgp_com(j, :) + xk(j);                                        % take jth component of xk-sampled point and add up to required axis to form integration line
+
+        for i = length(I_line)                                                   % evaluate conditional density over integration line
+            C_density(i) = post(I_line(i), q, v, sigma_n, p);
+        end
+
+        cdf     = cumsum(C_density);                                             % integrate condional density
+        %cdf     = cdf/cdf(end);
+        t       = rand;                                                          % sample from Unif(0,1)
+        xi      = find(t <= cdf(end), 1);                                                % inverse of cdf approximated numerically
         
+        y(j)    = I_line(xi);
+    end
+    xk(1) = imag(y(1))*1i;
+    xk(2) = real(y(2));
+
+    sample_histories(k, 1) = real(xk(2));
+    sample_histories(k, 2) = imag(xk(1));
+end
+%% Posterior density
+for i = 1:length(Y)                                                              % evaluate posterior                                             
+    for j = 1:length(X)
+        posterior(i,j) = post(compl_pl(i,j),q,v,sigma_n,p); 
     end
 end
+%% Plots
+figure(1)
+imagesc([-1,1], [-1,1], posterior);
+set(gca,'YDir','normal');
+axis image
+hold on
+plot(cos(t), sin(t), 'k');
+plot(p, '*');
+plot(x0, '+');
+title('Posterior');
+hold off
+
+figure(2)
+hold on
+scatter(sample_histories(:,1), sample_histories(:,2),25,"red");
+plot(cos(t), sin(t), 'k');
+plot(p, '*', 'Color', 'b');
+plot(x0, '+', 'Color', 'k');
+cap = sprintf('Sample scatterplot');
+title(cap, 'FontSize', 10);
+hold off
+
+figure(3)
+hold on
+subplot(2,1,1);plot(sample_histories(:,1));
+title('Sample history x');
+subplot(2,1,2);plot(sample_histories(:,2));
+title('Sample history y');
+hold off
