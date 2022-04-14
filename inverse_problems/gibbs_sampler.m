@@ -3,6 +3,7 @@ close all;
 % Gibbs sampler to reconstruct posterior probability distribution of the
 % particle moving in the unit disk
 %% Preallocations
+
 f        = @(x,p) 1./abs(x-p);                                                   % charge potential function
 post     = @(x,q,v,s,p) (abs(x)<=1) * exp(-norm(v-q*f(x,p))^2/(2*s^2));          % sampling posterior distribution
 
@@ -26,6 +27,7 @@ ygp      = xgp;                                                                 
 compl_pl = complex(X, Y);                                                        % discretized complex plane
 XYgp_com = [complex(xgp,0); complex(0,ygp)];                                     % complex absciss and ordinate for samplig from cond. density
 %% Gibbs Sampler
+
 sample_histories = zeros(N, 2);                                                  % record sample histories
 posterior        = zeros(size(compl_pl));                                        % value of posterior at every grid point
 C_density        = zeros(size(XYgp_com(1,:)));                                   % values to evalue conditional density over integration line
@@ -36,29 +38,32 @@ for k = 1:N
     for j = [1, 2]                                                               
         I_line  = XYgp_com(j, :) + xk(j);                                        % take jth component of xk-sampled point and add up to required axis to form integration line
 
-        for i = length(I_line)                                                   % evaluate conditional density over integration line
+        for i = 1:length(I_line)                                                 % evaluate conditional density over integration line
             C_density(i) = post(I_line(i), q, v, sigma_n, p);
         end
 
         cdf     = cumsum(C_density);                                             % integrate condional density
-        %cdf     = cdf/cdf(end);
-        t       = rand;                                                          % sample from Unif(0,1)
-        xi      = find(t <= cdf(end), 1);                                                % inverse of cdf approximated numerically
+        cdf     = cdf/cdf(end);                                                  % normalization to 1
+        tau     = rand;                                                          % sample from Unif(0,1)
+        xi      = find(tau <= cdf, 1);                                           % inverse of cdf approximated numerically
         
         y(j)    = I_line(xi);
     end
-    xk(1) = imag(y(1))*1i;
-    xk(2) = real(y(2));
+    xk(1) = imag(y(2))*1i;
+    xk(2) = real(y(1));
 
     sample_histories(k, 1) = real(xk(2));
     sample_histories(k, 2) = imag(xk(1));
 end
 %% Posterior density
+
 for i = 1:length(Y)                                                              % evaluate posterior                                             
     for j = 1:length(X)
         posterior(i,j) = post(compl_pl(i,j),q,v,sigma_n,p); 
     end
 end
+%% Autocovariances
+
 %% Plots
 figure(1)
 imagesc([-1,1], [-1,1], posterior);
