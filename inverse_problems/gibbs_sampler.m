@@ -3,7 +3,6 @@ close all;
 % Gibbs sampler to reconstruct posterior probability distribution of the
 % particle moving in the unit disk
 %% Preallocations
-
 f        = @(x,p) 1./abs(x-p);                                                   % charge potential function
 post     = @(x,q,v,s,p) (abs(x)<=1) * exp(-norm(v-q*f(x,p))^2/(2*s^2));          % sampling posterior distribution
 
@@ -31,7 +30,6 @@ XYgp_com = [complex(xgp,0); complex(0,ygp)];                                    
 sample_histories = zeros(N, 2);                                                  % record sample histories
 posterior        = zeros(size(compl_pl));                                        % value of posterior at every grid point
 C_density        = zeros(size(XYgp_com(1,:)));                                   % values to evalue conditional density over integration line
-
 
 %xk = [0+0.1i, 0.1+0i];
 xk = 0 + 0i;
@@ -111,7 +109,7 @@ subplot(2,1,2);plot(sample_histories(:,2));
 title('Sample history y');
 hold off
 
-L = 500;
+L = 100;
 figure(4)
 hold on
 subplot(2,1,1);plot(0:L, ac_x(1:(L+1)));

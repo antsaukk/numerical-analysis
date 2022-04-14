@@ -105,9 +105,11 @@ for gamma = [0.001, 0.01, 0.05, 0.1, 0.3, 0.5, 1, 5]
     figure(iter)
     hold on
     subplot(2,1,1);plot(0:L, ac_x(1:(L+1)));
-    title('Autocovariance of x sample component');
+    cap = sprintf('Autocovariance of x sample component with gamma=%.2f', gamma);
+    title(cap, 'FontSize', 10);
     subplot(2,1,2);plot(0:L, ac_y(1:(L+1)));
-    title('Autocovariance of y sample component');
+    cap = sprintf('Autocovariance of y sample component with gamma=%.2f', gamma);
+    title(cap, 'FontSize', 10);
     hold off
 
     iter = iter+1;
