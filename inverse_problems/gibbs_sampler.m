@@ -5,7 +5,7 @@ close all;
 %% Preallocations
 
 f        = @(x,p) 1./abs(x-p);                                                   % charge potential function
-post     = @(x,q,v,s,p) (abs(x)<=1) * exp(-norm(v-q*f(x,p))^2/(2*s^2));          % sampling posterior distribution
+post     = @(x,q,v,s,p) (abs(x)<1) * exp(-norm(v-q*f(x,p))^2/(2*s^2));           % sampling posterior distribution
 
 N        = 10000;                                                                % number of samples
 dim      = 2;                                                                    % number of dimensions
@@ -32,29 +32,44 @@ sample_histories = zeros(N, 2);                                                 
 posterior        = zeros(size(compl_pl));                                        % value of posterior at every grid point
 C_density        = zeros(size(XYgp_com(1,:)));                                   % values to evalue conditional density over integration line
 
-xk = [0+0.1i, 0.1+0i];
+
+%xk = [0+0.1i, 0.1+0i];
+xk = 0 + 0i;
+tic
 for k = 1:N
-    y = zeros(dim, 1);
+    %y = 0 + 0i;
     for j = [1, 2]                                                               
-        I_line  = XYgp_com(j, :) + xk(j);                                        % take jth component of xk-sampled point and add up to required axis to form integration line
+        %I_line  = XYgp_com(j, :) + xk(j);                                       % take jth component of xk-sampled point and add up to required axis to form integration line
+        if j == 1
+            I_line = XYgp_com(j, :) + imag(xk)*1i;
+        else
+            I_line = XYgp_com(j, :) + real(xk);
+        end
 
         for i = 1:length(I_line)                                                 % evaluate conditional density over integration line
             C_density(i) = post(I_line(i), q, v, sigma_n, p);
         end
+        %C_density = arrayfun(@(I_line) post(I_line, q, v, sigma_n, p), I_line);
 
         cdf     = cumsum(C_density);                                             % integrate condional density
         cdf     = cdf/cdf(end);                                                  % normalization to 1
         tau     = rand;                                                          % sample from Unif(0,1)
         xi      = find(tau <= cdf, 1);                                           % inverse of cdf approximated numerically
         
-        y(j)    = I_line(xi);
+        %y(j)    = I_line(xi);
+        %y       = I_line(xi);
+        xk       = I_line(xi);
     end
-    xk(1) = imag(y(2))*1i;
-    xk(2) = real(y(1));
+    %xk(1) = imag(y(2))*1i;
+    %xk(2) = real(y(1));
+    %xk = y;
 
-    sample_histories(k, 1) = real(xk(2));
-    sample_histories(k, 2) = imag(xk(1));
+    %sample_histories(k, 1) = real(xk(2));
+    %sample_histories(k, 2) = imag(xk(1));
+    sample_histories(k, 1) = real(xk);
+    sample_histories(k, 2) = imag(xk);
 end
+toc
 %% Posterior density
 
 for i = 1:length(Y)                                                              % evaluate posterior                                             
@@ -64,6 +79,9 @@ for i = 1:length(Y)                                                             
 end
 %% Autocovariances
 
+sample_mean = mean(sample_histories);
+centered_sample = sample_histories - sample_mean;
+gamma_0 = 1/N * sum(centered_sample * centered_sample);
 %% Plots
 figure(1)
 imagesc([-1,1], [-1,1], posterior);
