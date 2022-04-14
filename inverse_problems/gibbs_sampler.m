@@ -79,9 +79,8 @@ for i = 1:length(Y)                                                             
 end
 %% Autocovariances
 
-sample_mean = mean(sample_histories);
-centered_sample = sample_histories - sample_mean;
-gamma_0 = 1/N * sum(centered_sample * centered_sample);
+ac_x = autocovariance(sample_histories(:,1));
+ac_y = autocovariance(sample_histories(:,2));
 %% Plots
 figure(1)
 imagesc([-1,1], [-1,1], posterior);
@@ -111,3 +110,27 @@ title('Sample history x');
 subplot(2,1,2);plot(sample_histories(:,2));
 title('Sample history y');
 hold off
+
+figure(4)
+hold on
+subplot(2,1,1);plot(0:100, fliplr(ac_x));
+legend('ac of x')
+subplot(2,1,2);plot(0:100, fliplr(ac_y));
+legend('ac of y')
+title('Autocovariance of gibbs sampler');
+hold off
+%% Autocovariance function
+function ac = autocovariance(x)
+    mn       = mean(x);
+    centered = x - mn;
+    gamma0   = mean(centered.^2);
+    N        = length(x);
+    K        = 1:N;
+    ac       = zeros(1, N);
+    for k = K
+        for j = 1:(N-k)
+            ac(k) = ac(k) + centered(j)*centered(j+k);
+        end
+        ac(k) = ac(k)/(gamma0*(N-k));
+    end
+end
