@@ -97,6 +97,20 @@ for gamma = [0.001, 0.01, 0.05, 0.1, 0.3, 0.5, 1, 5]
     hold off
 
     iter = iter+1;
+
+    ac_x = autocovariance(sample_histories(:,1));
+    ac_y = autocovariance(sample_histories(:,2));
+    L    = 100;
+
+    figure(iter)
+    hold on
+    subplot(2,1,1);plot(0:L, ac_x(1:(L+1)));
+    title('Autocovariance of x sample component');
+    subplot(2,1,2);plot(0:L, ac_y(1:(L+1)));
+    title('Autocovariance of y sample component');
+    hold off
+
+    iter = iter+1;
 end
 
 % We observe that acceptance rate is inversly proportional to sqrt(variance):
@@ -114,3 +128,16 @@ end
 % resulting distribution is too dense, while in the second case too many
 % points are sampled from the boundary which results in too low acceptance
 % rate.
+%% Autocovariance function
+function ac = autocovariance(x)
+    mn       = mean(x);
+    centered = x - mn;
+    gamma0   = mean(centered.^2);
+    N        = length(x);
+    K        = 1:(N-1);
+    ac       = zeros(1, N-1);
+    for k = K
+        ac(k) = sum(centered(1:N-k).*centered((k+1):N));
+        ac(k) = ac(k)/(gamma0*(N-k));
+    end
+end
