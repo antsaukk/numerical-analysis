@@ -23,7 +23,7 @@ toc
 A = 1/N^2 * A;
 
 sigma = 0.005; % standard deviation in of noise in the data
-eps = sqrt(sigma^2 * N^2); % Morozov criteria
+eps = sqrt(sigma^2 * N^2); % Morozov criteria 
 
 Aw = A'*w; % precompute constant terms 
 %% CGA
