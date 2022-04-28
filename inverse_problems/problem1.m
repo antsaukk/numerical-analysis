@@ -24,9 +24,9 @@ I            = eye(M);
 deltas       = [100 10 1 10^(-5)];
 Z            = zeros(length(deltas), M);
 %% Levenberg-Marquardt Algorithm
-run = true;
 k = 1;
 for delta = deltas
+    run = true;
     while(run)
         % Linearization components
         Jfz  = Jacobian(x1, x2, q1, q2, Y, dfdx, dfdq);
@@ -44,9 +44,8 @@ for delta = deltas
         x2   = [z(3) z(4)];
         q1   = z(5);
         q2   = z(6);
-    
         % stopping criteria
-        stop = fzk + Jfz*(z - zdk) - w;
+        stop = fzk + Jfz*(z - zdk') - w;
         run  = abs(stop) > eps;
     end
     Z(k,:) = z;
