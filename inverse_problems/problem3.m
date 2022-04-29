@@ -32,6 +32,7 @@ for k = N1
         end
     end
 end
+post = post/(sum(sum(sum(post))));                         % normalization
 %% Conditional Mean Estimate
 CM = zeros(length(N), 1);
 
@@ -50,6 +51,32 @@ end
 [M,I]        = max(post,[],"all","linear");
 [d1, d2, d3] = ind2sub(size(post),I);
 map          = [d1, d2, d3];
+%% Computation of marginal densities 
+post12 = zeros(length(N1), length(N2));
+
+for k = N1
+    i = index(k);
+    for l = N2
+        j = index(l);
+        for m = N3
+            n = index(m);
+            post12(i,j) = post12(i,j) + post(i,j,n);
+        end
+    end
+end
+
+post113 = zeros(length(N1), length(N3));
+
+for k = N1
+    i = index(k);
+    for m = N3
+        j = index(l);
+        for l = N2
+            n = index(m);
+            post12(i,j) = post12(i,j) + post(i,j,n);
+        end
+    end
+end
 %% Posterior function
 function post = Posterior(Y, X, N, sigma)
     n          = length(X);
@@ -64,9 +91,21 @@ function post = Posterior(Y, X, N, sigma)
                      (Y(3) - hmean)^2));
 
     prior      = 1/(2^sum(N))*prod(arrayfun(@(N, X) nchoosek(N,X), N, X));
-                 %nchoosek(N(1),X(1)) * 
-                 %nchoosek(N(2),X(2)) * 
-                 %nchoosek(N(3),X(3));
+    %prior      = 1/(2^sum(N))*nchoosek(N(1),X(1))*nchoosek(N(2),X(2))*nchoosek(N(3),X(3));
     
     post = likelihood * prior;
+end
+%% Marginal density
+function marg = Marginal(N1, N2, N3, post)
+    marg = zeros(1);
+    for k = N1
+        i = index(k);
+        for l = N2
+            j = index(l);
+            for m = N3
+                n = index(m);
+                post12(i,j) = post12(i,j) + post(i,j,n);
+            end
+        end
+    end
 end
