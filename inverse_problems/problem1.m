@@ -45,7 +45,7 @@ for delta = deltas
         q1   = z(5);
         q2   = z(6);
         % stopping criteria
-        stop = fzk + Jfz*(z - zdk') - w;
+        stop = fzk + Jfz*(z - zdk') - w; %Matrix? 
         run  = abs(stop) > eps;
     end
     Z(k,:) = z;
