@@ -27,17 +27,31 @@ for k = N1
         j = index(l);
         for m = N3
             n           = index(m);
-
             X           = [k l m];
-            p_klm = Posterior(Y, X, N, sigma);
-            post();
+            post(i,j,n) = Posterior(Y, X, N, sigma);
         end
     end
 end
+%% Conditional Mean Estimate
+CM = zeros(length(N), 1);
+
+for k = N1
+    i = index(k);
+    for l = N2
+        j = index(l);
+        for m = N3
+            n    = index(m);
+            prob = post(i,j,n);
+            CM   = CM + [k l m]'*prob;
+        end
+    end
+end
+%% MAP Estimate
+
 %% Posterior function
 function post = Posterior(Y, X, N, sigma)
     n          = length(X);
-
+    
     amean      = sum(X)/n;
     gmean      = prod(X)^(1/n);
     hmean      = n/(1/X(1)+1/X(2)+1/X(3));
@@ -47,10 +61,10 @@ function post = Posterior(Y, X, N, sigma)
                      (Y(2) - gmean)^2 + ...
                      (Y(3) - hmean)^2));
 
-    prior      = 1/(2^sum(N)) * arrayfun(@(N, X) nchoosek(N,X), N, X);
+    prior      = 1/(2^sum(N))*prod(arrayfun(@(N, X) nchoosek(N,X), N, X));
                  %nchoosek(N(1),X(1)) * 
                  %nchoosek(N(2),X(2)) * 
                  %nchoosek(N(3),X(3));
-    prior
+    
     post = likelihood * prior;
 end
