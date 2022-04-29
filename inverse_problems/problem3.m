@@ -47,7 +47,9 @@ for k = N1
     end
 end
 %% MAP Estimate
-
+[M,I]        = max(post,[],"all","linear");
+[d1, d2, d3] = ind2sub(size(post),I);
+map          = [d1, d2, d3];
 %% Posterior function
 function post = Posterior(Y, X, N, sigma)
     n          = length(X);
