@@ -5,7 +5,6 @@ N = 1600;
 h = 1/N;
 x1 = linspace(0, 1-h, N);
 x2 = linspace(0, 1-h, N);
-%[X, Y] = meshgrid(x1, x2);
 U = load("assignment2.mat"); 
 Y = U.Y;
 w = U.w;
@@ -23,7 +22,7 @@ toc
 A = 1/N^2 * A;
 
 sigma = 0.005; % standard deviation in of noise in the data
-eps = sqrt(sigma^2 * N^2); % Morozov criteria 
+eps = sigma * sqrt(N); % Morozov criteria 
 
 Aw = A'*w; % precompute constant terms 
 %% CGA
