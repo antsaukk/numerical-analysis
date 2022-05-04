@@ -30,9 +30,10 @@ for delta = deltas
     while(run)
         % Linearization components
         Jfz  = Jacobian(x1, x2, q1, q2, Y, dfdx, dfdq);
+        Jfz
         zdk  = [x1 x2 q1 q2];
         fzk  = F(x1, x2, q1, q2, Y, fi);
-        
+
         % Tikhonov function components
         u    = Jfz*zdk' + w - fzk;
         K    = [Jfz; sqrt(delta)*I];
@@ -44,9 +45,10 @@ for delta = deltas
         x2   = [z(3) z(4)];
         q1   = z(5);
         q2   = z(6);
+
         % stopping criteria
         stop = fzk + Jfz*(z - zdk') - w; %Matrix? 
-        run  = abs(stop) > eps;
+        run  = norm(stop) > eps;
     end
     Z(k,:) = z;
     k = k + 1;

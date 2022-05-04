@@ -31,14 +31,12 @@ sample_histories = zeros(N, 2);                                                 
 posterior        = zeros(size(compl_pl));                                        % value of posterior at every grid point
 C_density        = zeros(size(XYgp_com(1,:)));                                   % values to evalue conditional density over integration line
 
-%xk = [0+0.1i, 0.1+0i];
 xk = 0 + 0i;
 tic
 for k = 1:N
     %y = 0 + 0i;
     for j = [1, 2]                                                               
-        %I_line  = XYgp_com(j, :) + xk(j);                                       % take jth component of xk-sampled point and add up to required axis to form integration line
-        if j == 1
+        if j == 1                                                                % take jth component of xk-sampled point and add up to required axis to form integration line
             I_line = XYgp_com(j, :) + imag(xk)*1i;
         else
             I_line = XYgp_com(j, :) + real(xk);
@@ -54,16 +52,9 @@ for k = 1:N
         tau     = rand;                                                          % sample from Unif(0,1)
         xi      = find(tau <= cdf, 1);                                           % inverse of cdf approximated numerically
         
-        %y(j)    = I_line(xi);
-        %y       = I_line(xi);
         xk       = I_line(xi);
     end
-    %xk(1) = imag(y(2))*1i;
-    %xk(2) = real(y(1));
-    %xk = y;
-
-    %sample_histories(k, 1) = real(xk(2));
-    %sample_histories(k, 2) = imag(xk(1));
+    
     sample_histories(k, 1) = real(xk);
     sample_histories(k, 2) = imag(xk);
 end

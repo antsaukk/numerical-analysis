@@ -20,6 +20,10 @@ eps = sigma * sqrt(N-1);                                                    % ac
 stop = 10^(-10);                                                            % stopping criteria
 
 F_Tikhonov = zeros(1, length(Y.y));                                         % to store estimated initial heat distribution
+
+N_sam      = 2000;                                                          % number of samples
+gamma      = 5;                                                             % value of gamma parameter
+F_Gibbs    = zeros(1, length(Y.y));                                         % reconstruction from gibbs sampler
 %% (a) Solution to heat equation via Minimization of Tikhonov functional
 
 delta = 0.1;                                                                % starting value for delta
@@ -61,6 +65,19 @@ for n = 1:length(diagonal)
         break;
     end
 end
+%% Gibbs sampler
+C_density = zeros(size(x));
+
+for s = 1:N_sam
+    for j = 1:(N-1)
+        I_line = x + F_Gibbs(j);  %???                                          % take jth component and evaluate cond.dist. over line
+        
+        for i = 1:length(C_density)
+            C_density(i) = Posterior(I_line, Y.y, A, gamma, sigma);
+        end
+    end
+end
+%% Plots
 figure(2);
 hold on
 plot(x, F_TSVD, 'LineWidth', 1);
@@ -86,3 +103,29 @@ title('Residual ')
 legend('||Ax - y||')
 grid on;
 hold off
+
+%Posterior(F_Gibbs, Y.y, A, gamma, sigma)
+%% Utilities
+function post = Posterior(z, y, A, gamma, sigma)
+    Ksi030 = @(z) z >= 0 && z <= 30;
+    pi030  = prod(arrayfun(@(z) Ksi030(z), z));
+    %pi030
+    pr_j   = @(z, gamma) 1/(1 + gamma^2*z^2);
+    gamma  = gamma*ones(size(z));
+    prior  = prod(arrayfun(@(z, gamma) pr_j(z, gamma), z, gamma));
+
+    likeli = @(y, A, z, sigma) exp(-1/(2*sigma^2)*norm(y-A*z')^2);
+    
+    %prior
+    post   = pi030 * prior * likeli(y, A, z, sigma);
+end
+
+function post = Posterior1D(z, y, ai, gamma, sigma)
+    ksi030 = z >= 0 && z <= 30;
+    
+    prior  = 1/(1 + gamma^2*z^2);
+
+    likeli = exp(-1/(2*sigma^2)*abs(y-ai*z)^2);
+    
+    post   = ksi030 * prior * likeli;
+end
