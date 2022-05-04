@@ -1,13 +1,12 @@
 clear all;
 close all; 
 %% Preallocations
-index       = @(ind) ind-1;
-
 N           = 1600;
 axis_length = sqrt(N);
 h           = 1/axis_length;
 x1          = linspace(0, 1-h, axis_length);
 x2          = linspace(0, 1-h, axis_length);
+[X, Y]      = meshgrid(x1, x2);
 U           = load("assignment2.mat"); 
 Y           = U.Y;
 w           = U.w;
@@ -19,13 +18,14 @@ for k = 1:N
         for j = 1:axis_length
             x   = [x1(i) x2(j) 0];
             y   = Y(:,k);
-            ind = index(j)+index(i)*axis_length+1;
+            ind = (j-1)+(i-1)*axis_length + 1;
             A(k,ind) = 1/norm(x - y);
         end
     end
 end
-A = 1/N * A;
 toc
+%A = 1/N^2 * A;
+A = 1/N * A;
 
 z = zeros(size(w));                                                         % estimate from alternating algorithm
 gamma = 0.1;                                                                % estimate for stdev
@@ -74,49 +74,36 @@ toc
 
 Pcg = reshape(pcg, 40, 40);
 figure(1)
-%imagesc(Pcg);
-imagesc([0,1], [0,1], Pcg);
+imagesc(Pcg);
 set(gca,'YDir','normal');
 axis square
 caption = sprintf('Reconstruction with k %d', k-1);
 title(caption, 'FontSize', 14);
 %% Alternating algorithm to find MAP
 kk = 1;
-gammas = [];
-gammas(1) = gamma;
 
-run = norm(A*z - w) > eps && abs(sigma-gamma) > 0.001; %wrong
+run = norm(A*z - w) > eps && abs(sigma-gamma) > 0.001;
 norm(A*z - w)
 tic
 while(run)
     % find z
-    delta       = sigma^2/gamma^2;
-    K           = [A; sqrt(delta) * eye(N)];
-    v           = [w; zeros(N, 1)];
-    z           = K\v;
+    delta = sigma^2/gamma^2;
+    K     = [A; sqrt(delta) * eye(N)];
+    v     = [w; zeros(N, 1)];
+    z     = K\v;
 
     % find gamma
-    gamma       = sqrt(2/N) * sigma * norm(z);
+    gamma = sqrt(2/N) * sigma * norm(z);
     gamma
-    run         = norm(A*z - w) > eps && abs(sigma-gamma) > 0.001; %wrong
+    run   = norm(A*z - w) > eps && abs(sigma-gamma) > 0.001;
     norm(A*z-w)
-    kk          = kk + 1;
-    gammas(kk)  = gamma;
+    kk    = kk + 1;
 end
 toc
 
-figure(2)
-hold on
-plot(1:kk, gammas);
-title('Prior stded as function of iterations')
-legend('Prior stdev')
-grid on
-hold off
-
-Z = reshape(z, 40, 40);
-figure(3)
-imagesc([0,1], [0,1], Z);
+figure(12)
+imagesc(Pcg);
 set(gca,'YDir','normal');
 axis square
-caption = sprintf('Reconstruction via statistical inversion with k %d', kk-1);
+caption = sprintf('Reconstruction with k %d', k-1);
 title(caption, 'FontSize', 14);

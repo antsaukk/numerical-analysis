@@ -41,7 +41,7 @@ for k = 1:N
         else
             I_line = XYgp_com(j, :) + real(xk);
         end
-
+        
         for i = 1:length(I_line)                                                 % evaluate conditional density over integration line
             C_density(i) = post(I_line(i), q, v, sigma_n, p);
         end
