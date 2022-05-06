@@ -74,7 +74,6 @@ toc
 
 Pcg = reshape(pcg, 40, 40);
 figure(1)
-%imagesc(Pcg);
 imagesc([0,1], [0,1], Pcg);
 set(gca,'YDir','normal');
 axis square
