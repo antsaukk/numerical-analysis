@@ -56,7 +56,7 @@ for delta = deltas
     toc
 
     Z(k,:) = zdk;                                                           % save solution obtained with current delta
-    visualize(zdk, Y, k);                                                   % visualize 
+    visualize(zdk, Y, delta, k);                                            % visualize 
     k = k + 1;
 
     x1           = [-0.25, 0];                                              % reinit initial values of
@@ -65,9 +65,8 @@ for delta = deltas
     q2           = 0;
     zdk          = [x1, x2, q1, q2]';
 end
-toc
 %% Visualization function
-function visualize(z, Y, k)
+function visualize(z, Y, delta, k)
     x1   = [z(1); z(2); z(5)];                                              % unpack the values
     x2   = [z(3); z(4); z(6)];
     X    = [x1, x2];
@@ -95,12 +94,10 @@ function visualize(z, Y, k)
     %hold on
     for i = 1:length(Y)
         plot(Y(1, i), Y(2, i), '-o', 'LineWidth', 3, 'Color', 'k')
-        text(Y(1, i), Y(2, i),sprintf('  M-DEVICE %d', i))
+        text(Y(1, i), Y(2, i), sprintf('  M-DEVICE %d', i))
         hold on
     end
-
-    caption = sprintf('something k %d', k);
-    title(caption, 'FontSize', 14);
+    title(sprintf('Solution with delta %d', delta), 'FontSize', 14);
     hold off
 end
 %% Jacobian function
