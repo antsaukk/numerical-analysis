@@ -7,7 +7,7 @@ U           = load("assignment2.mat");                                      % lo
 Y           = U.Y;
 w           = U.w;
 
-N           = length(w);                                                    % fetching and setting the parameters
+N           = length(w);                                                    % setting the parameters
 axis_length = sqrt(N);
 h           = 1/axis_length;
 x1          = linspace(0, 1-h, axis_length);
