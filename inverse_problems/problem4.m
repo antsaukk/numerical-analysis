@@ -21,7 +21,7 @@ stop       = 10^(-10);                                                      % st
 
 F_Tikhonov = zeros(1, length(Y.y));                                         % data structure to store Tikhonov functional solution
 
-N_sam      = 1;                                                           % number of samples
+N_sam      = 100;                                                           % number of samples
 gamma      = 5;                                                             % value of gamma parameter
 F_Gibbs    = zeros(1, length(Y.y));                                         % reconstruction from gibbs sampler
 %% (a) Solution to heat equation via Minimization of Tikhonov functional
@@ -60,27 +60,43 @@ for n = 1:length(diagonal)
     end
 end
 %% Gibbs sampler
-C_density = zeros(size(x));
+x_range = linspace(0, 30, 100);
+%C_density = zeros(N-1, 1);
+Zsamples  = zeros(N_sam, N-1);
 
 tic
 for s = 1:N_sam
     s
     for j = 1:(N-1)
-        I_line = x + F_Gibbs(j);  %???                                          % take jth component and evaluate cond.dist. over line
-        
-        for i = 1:length(C_density)
-            C_density(i) = Posterior1D(I_line, Y.y, A(i,:), gamma, sigma, i);
+        I_line = zeros(size(x_range));  %???                                     % take jth component and evaluate cond.dist. over line
+        for i = 1:length(I_line)
+            Ztemp     = F_Gibbs;
+            Ztemp(j)  = x_range(i);
+            I_line(i) = Posterior(Ztemp, Y.y, A, gamma, sigma);
         end
 
-        cdf              = cumsum(C_density);                                    % integrate condional density
+        cdf              = cumsum(I_line);                                    % integrate condional density
         cdf              = cdf/cdf(end);                                         % normalization to 1
         tau              = rand;                                                 % sample from Unif(0,1)
         xi               = find(tau <= cdf, 1);                                  % inverse of cdf approximated numerically
         
         F_Gibbs(j)       = I_line(xi);
     end
+    Zsamples(s, :) = F_Gibbs;
 end
 toc
+
+postsamples = zeros(1, N_sam);
+for i = 1:N_sam
+    postsamples(i) = Posterior(Zsamples(i, :), Y.y, A, gamma, sigma);
+end
+
+n_postsamples = postsamples/sum(postsamples);
+sum(n_postsamples)
+ZCM = zeros(length(Y.y), 1);
+for i = 1:N_sam
+    ZCM = ZCM + Zsamples(i, :)*n_postsamples;
+end
 %% Plots
 figure(1);
 hold on
@@ -118,7 +134,7 @@ hold off
 
 figure(5);
 hold on
-plot(x, F_Gibbs, 'LineWidth', 1);
+plot(x, ZCM, 'LineWidth', 1);
 title('GS reconstruction of initial heat distribution')
 legend('Approximation of F obtained by sampling')
 grid on;
@@ -128,7 +144,7 @@ figure(6);
 hold on
 plot(x, F_Tikhonov, 'LineWidth', 1);
 plot(x, F_TSVD, 'LineWidth', 1);
-plot(x, F_Gibbs, 'LineWidth', 1);
+plot(x, ZCM, 'LineWidth', 1);
 cap = sprintf('Tikhonov, TSVD, GS');
 title(cap, 'FontSize', 10)
 legend('Tikhonov solution', 'TSVD solution', 'GS Solution')
@@ -138,14 +154,12 @@ hold off
 function post = Posterior(z, y, A, gamma, sigma)
     Ksi030 = @(z) z >= 0 && z <= 30;
     pi030  = prod(arrayfun(@(z) Ksi030(z), z));
-    %pi030
     pr_j   = @(z, gamma) 1/(1 + gamma^2*z^2);
     gamma  = gamma*ones(size(z));
     prior  = prod(arrayfun(@(z, gamma) pr_j(z, gamma), z, gamma));
 
     likeli = @(y, A, z, sigma) exp(-1/(2*sigma^2)*norm(y-A*z')^2);
-    
-    %prior
+   
     post   = pi030 * prior * likeli(y, A, z, sigma);
 end
 
