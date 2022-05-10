@@ -95,6 +95,9 @@ ZCM = zeros(length(Y.y), 1);
 for i = 1:N_sam
     ZCM = ZCM + Zsamples(i, :)'*normalized_post(i);
 end
+
+indexes_of_min_mix_axes = sample_histories(Zsamples);
+indexes_of_min_mix_axes
 %% Plots
 figure(1);
 hold on
@@ -152,6 +155,14 @@ legend('A*(Tikhonov solution)', ...
     'Measurement')
 grid on;
 hold off
+
+figure(7)
+hold on
+subplot(2,1,1);plot(Zsamples(indexes_of_min_mix_axes(1), :));
+title('Sample history smallest');
+subplot(2,1,2);plot(Zsamples(indexes_of_min_mix_axes(2), :));
+title('Sample history largest');
+hold off
 %% Utilities
 function post = Posterior(z, y, A, gamma, sigma)
     Ksi030 = @(z) z >= 0 && z <= 30;
@@ -185,4 +196,11 @@ function post = Posterior1D(z, y, ai, gamma, sigma, index)
     likeli = exp(-1/(2*sigma^2)*abs(yi-ai*z')^2);
     
     post   = pi030 * prior * likeli;
+end
+
+function indexes = sample_histories(Z)
+    ZM      = mean(Z, 2);
+    argmin  = find(ZM == min(ZM));
+    argmax  = find(ZM == max(ZM));
+    indexes = [argmin argmax];
 end
