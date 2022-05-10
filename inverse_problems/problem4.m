@@ -21,7 +21,7 @@ stop       = 10^(-10);                                                      % st
 
 F_Tikhonov = zeros(1, length(Y.y));                                         % data structure to store Tikhonov functional solution
 
-N_sam      = 100;                                                           % number of samples
+N_sam      = 3000;                                                           % number of samples
 gamma      = 5;                                                             % value of gamma parameter
 F_Gibbs    = zeros(1, length(Y.y));                                         % reconstruction from gibbs sampler
 %% (a) Solution to heat equation via Minimization of Tikhonov functional
@@ -61,26 +61,25 @@ for n = 1:length(diagonal)
 end
 %% Gibbs sampler and conditional mean
 x_range = linspace(0, 30, 100);
-%C_density = zeros(N-1, 1);
 Zsamples  = zeros(N_sam, N-1);
+Ztemp     = zeros(size(F_Gibbs));  
 
 tic
 for s = 1:N_sam
-    s
     for j = 1:(N-1)
         I_line = zeros(size(x_range));  %???                                     % take jth component and evaluate cond.dist. over line
         for i = 1:length(I_line)
             Ztemp     = F_Gibbs;
             Ztemp(j)  = x_range(i);
-            I_line(i) = Posterior(Ztemp, Y.y, A, gamma, sigma);
+            I_line(i) = PosteriorIter(Ztemp, Y.y, A, gamma, sigma);
         end
 
         cdf              = cumsum(I_line);                                    % integrate condional density
         cdf              = cdf/cdf(end);                                         % normalization to 1
         tau              = rand;                                                 % sample from Unif(0,1)
         xi               = find(tau <= cdf, 1);                                  % inverse of cdf approximated numerically
-        
-        F_Gibbs(j)       = I_line(xi);
+
+        F_Gibbs(j)       = x_range(xi);
     end
     Zsamples(s, :) = F_Gibbs;
 end
@@ -141,12 +140,16 @@ hold off
 
 figure(6);
 hold on
-plot(x, F_Tikhonov, 'LineWidth', 1);
-plot(x, F_TSVD, 'LineWidth', 1);
-plot(x, ZCM, 'LineWidth', 1);
-cap = sprintf('Tikhonov, TSVD, GS');
+plot(x, A*F_Tikhonov, 'LineWidth', 1);
+plot(x, A*F_TSVD, 'LineWidth', 1);
+plot(x, A*ZCM, 'LineWidth', 1);
+plot(x, Y.y, 'LineWidth', 1);
+cap = sprintf('A*Tikhonov, A*TSVD, A*GS, Measurement');
 title(cap, 'FontSize', 10)
-legend('Tikhonov solution', 'TSVD solution', 'GS Solution')
+legend('A*(Tikhonov solution)', ...
+    'A*(TSVD solution)', ...
+    'A*(GS Solution)', ...
+    'Measurement')
 grid on;
 hold off
 %% Utilities
@@ -156,10 +159,18 @@ function post = Posterior(z, y, A, gamma, sigma)
     pr_j   = @(z, gamma) 1/(1 + gamma^2*z^2);
     gamma  = gamma*ones(size(z));
     prior  = prod(arrayfun(@(z, gamma) pr_j(z, gamma), z, gamma));
-
+    
     likeli = @(y, A, z, sigma) exp(-1/(2*sigma^2)*norm(y-A*z')^2);
    
     post   = pi030 * prior * likeli(y, A, z, sigma);
+end
+
+function post = PosteriorIter(z, y, A, gamma, sigma)
+    post   = 1;
+    for i = 1:length(z)
+        post = post * 1/(1 + gamma^2*z(i)^2);
+    end
+    post = post * exp(-1/(2*sigma^2)*norm(y-A*z')^2);
 end
 
 function post = Posterior1D(z, y, ai, gamma, sigma, index)
