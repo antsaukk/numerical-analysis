@@ -59,7 +59,7 @@ for n = 1:length(diagonal)
         break;
     end
 end
-%% Gibbs sampler
+%% Gibbs sampler and conditional mean
 x_range = linspace(0, 30, 100);
 %C_density = zeros(N-1, 1);
 Zsamples  = zeros(N_sam, N-1);
@@ -86,16 +86,15 @@ for s = 1:N_sam
 end
 toc
 
-postsamples = zeros(1, N_sam);
+postsamples_probs = zeros(1, N_sam);
 for i = 1:N_sam
-    postsamples(i) = Posterior(Zsamples(i, :), Y.y, A, gamma, sigma);
+    postsamples_probs(i) = Posterior(Zsamples(i, :), Y.y, A, gamma, sigma);
 end
 
-n_postsamples = postsamples/sum(postsamples);
-sum(n_postsamples)
+normalized_post = postsamples_probs/sum(postsamples_probs);
 ZCM = zeros(length(Y.y), 1);
 for i = 1:N_sam
-    ZCM = ZCM + Zsamples(i, :)*n_postsamples;
+    ZCM = ZCM + Zsamples(i, :)'*normalized_post(i);
 end
 %% Plots
 figure(1);
