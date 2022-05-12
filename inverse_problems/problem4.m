@@ -38,7 +38,6 @@ while(run)
 end
 K          = [A; sqrt(delta)*eye(N-1)];
 F_Tikhonov = K\y;                                                           % reconstructed solution
-
 %% (b) Solution to heat equation equation with truncated SVD and Morozov principle
 
 [U L V] = svd(A);                                                           % svd
@@ -47,6 +46,7 @@ F_TSVD = zeros(1, length(Y.y));                                             % da
 residuals = [];                                                             % store residuals
 y = Y.y; 
 
+cutoff = 1;
 for n = 1:length(diagonal)
     sv = [1./diagonal(1:n); zeros(N-n-1, 1)];                               % inverte singular values
     A_pinv_n = V * diag(sv) * U';                                           % compute truncated svd
@@ -58,9 +58,11 @@ for n = 1:length(diagonal)
     if norm(A*F_TSVD - y) <= eps 
         break;
     end
+    cutoff = cutoff + 1;
 end
+disp(cutoff)
 %% Gibbs sampler and conditional mean
-x_range = linspace(0, 30, 100);
+x_range   = linspace(0, 30, 100);
 Zsamples  = zeros(N_sam, N-1);
 Ztemp     = zeros(size(F_Gibbs));  
 
@@ -158,9 +160,9 @@ hold off
 
 figure(7)
 hold on
-subplot(2,1,1);plot(Zsamples(indexes_of_min_mix_axes(1), :));
+subplot(2,1,1);plot(Zsamples(:, indexes_of_min_mix_axes(1)));
 title('Sample history smallest');
-subplot(2,1,2);plot(Zsamples(indexes_of_min_mix_axes(2), :));
+subplot(2,1,2);plot(Zsamples(:, indexes_of_min_mix_axes(2)));
 title('Sample history largest');
 hold off
 %% Utilities
@@ -199,8 +201,8 @@ function post = Posterior1D(z, y, ai, gamma, sigma, index)
 end
 
 function indexes = sample_histories(Z)
-    ZM      = mean(Z, 2);
+    ZM      = mean(Z);
     argmin  = find(ZM == min(ZM));
     argmax  = find(ZM == max(ZM));
-    indexes = [argmin argmax];
+    indexes = [argmin, argmax];
 end

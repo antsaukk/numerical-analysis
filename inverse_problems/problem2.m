@@ -14,7 +14,7 @@ x1          = linspace(0, 1-h, axis_length);
 x2          = linspace(0, 1-h, axis_length);
 
 %A           = Grid1(N, axis_length, x1, x2, Y, index);
-A           = Grid2(N, axis_length, x1, x2, Y, index);                      % compute approximation of integral operator
+A           = Grid2(N, axis_length, Y, index);                              % compute approximation of integral operator
 
 z           = zeros(size(w));                                               % initial estimate for alternating algorithm
 gamma       = 0.1;                                                          % initial estimate for stdev
@@ -108,14 +108,15 @@ function A = Grid1(N, axis_length, x1, x2, Y, index)
     toc
 end
 %% Function for generation Grid2
-function A = Grid2(N, axis_length, x1, x2, Y, index)
+function A = Grid2(N, axis_length, Y, index)
     tic
-    grid = zeros(3, N);
-
+    grid        = zeros(3, N);
+    inner_point = 1/(axis_length*2);
+    %disp(inner_point)
     for i = 1:axis_length
         for j = 1:axis_length
-            point                           = [1/80 + index(i)/axis_length
-                                               1/80 + index(j)/axis_length 
+            point                           = [inner_point + index(i)/axis_length
+                                               inner_point + index(j)/axis_length 
                                                0];
             grid(:, j+index(i)*axis_length) = point;
         end
