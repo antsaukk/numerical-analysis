@@ -65,6 +65,7 @@ gammas(1)   = gamma;                                                        % in
 run = norm(A*z - w) > eps; %wrong                                           % stopping according to Morozov criteria                                      
 norm(A*z - w)
 
+% justify why it is enough to look at convegence of Z_map only
 tic
 while(run) % how to stop?
     delta       = sigma^2/gamma^2;                                          % fix gamma and compute minimizer for Z_map 
@@ -72,8 +73,7 @@ while(run) % how to stop?
     v           = [w; zeros(N, 1)];
     z           = K\v;
 
-    gamma       = norm(z)/sqrt(N);                                          % compute gamma from T'(z,gamma)=0 with value of current iterate for Z_map
-    %gamma       = gamma + norm(z)/sqrt(N); 
+    gamma       = norm(z)/sqrt(N);                                          % compute gamma from T'(z,gamma)=0 with value of current iterate for Z_map 
     run         = norm(A*z - w) > eps;                                      % check the Morozov criteria
     
     kk          = kk + 1;

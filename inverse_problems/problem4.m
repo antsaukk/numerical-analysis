@@ -21,7 +21,7 @@ stop       = 10^(-10);                                                      % st
 
 F_Tikhonov = zeros(1, length(Y.y));                                         % data structure to store Tikhonov functional solution
 
-N_sam      = 3000;                                                           % number of samples
+N_sam      = 5000;                                                           % number of samples
 gamma      = 5;                                                             % value of gamma parameter
 F_Gibbs    = zeros(1, length(Y.y));                                         % reconstruction from gibbs sampler
 %% (a) Solution to heat equation via Minimization of Tikhonov functional
