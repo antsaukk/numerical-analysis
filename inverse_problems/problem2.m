@@ -19,8 +19,17 @@ A           = Grid2(N, axis_length, Y, index);                              % co
 z           = zeros(size(w));                                               % initial estimate for alternating algorithm
 gamma       = 0.1;                                                          % initial estimate for stdev
 
+% Since compoentns of noise vector are mutually independent,
+% normally distributed with 0 mean and sigma stdev, we can
+% estimate Morozov discrenpancy level as Expected value of the squared norm
+% of noise vector. It is easy to check that with this choice we terminate
+% the algorithm when norm of the residual is smaller than
+% epsion=sigma*sqrt(N). The detailed derivation of Morozov epsilon-acceptance 
+% level is presented in the solution of the problem 4.
+
 sigma       = 0.005;                                                        % standard deviation of noise in the data
-eps         = sigma * sqrt(N);                                              % Morozov criteria 
+eps         = sigma * sqrt(N);                                              % Morozov criteria
+
 
 Aw = A'*w;                                                                  % precompute constant terms 
 %% CGA
@@ -62,10 +71,14 @@ kk          = 1;                                                            % it
 gammas      = [];                                                           % recording residuals of gamma
 gammas(1)   = gamma;                                                        % initial value of gamma
 
-run = norm(A*z - w) > eps; %wrong                                           % stopping according to Morozov criteria                                      
+% Since iterate of Z_MAP and gamma_MAP are dependent, it implies that it is
+% enough to look only the at convergence Z_MAP, since as Z_MAP will be in
+% the ballpark of Morozov criteria, the algorithm will stop updating it to
+% avoind overfitting and it implies that gamma wont be updated either as it
+% is derived as function of Z_MAP.
+run = norm(A*z - w) > eps;                                                  % stopping according to Morozov criteria                                      
 norm(A*z - w)
 
-% justify why it is enough to look at convegence of Z_map only
 tic
 while(run) % how to stop?
     delta       = sigma^2/gamma^2;                                          % fix gamma and compute minimizer for Z_map 

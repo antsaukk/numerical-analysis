@@ -1,7 +1,7 @@
 clear all;
 close all;
 %% Preallocations
-dfdx         = @(q,x,y,i) -q*(y(i)-x(i))/norm(y-x')^2;                      % dfdx component of Jacobian
+dfdx         = @(q,x,y,i) -q*(y(i)-x(i))/norm(y-x')^2;                 % dfdx component of Jacobian
 dfdq         = @(x,y) log(norm(y-x'));                                      % dfdq component of Jacobian
 fi           = @(x1,x2,q1,q2,y) q1*log(norm(y-x1')) + q2*log(norm(y-x2'));  % function of the measurement
 
@@ -16,10 +16,18 @@ x2           = [0.25, 0];                                                   % of
 q1           = 0;
 q2           = 0;
 
+% Since compoentns of noise vector are mutually independent,
+% normally distributed with 0 mean and sigma stdev, we can
+% estimate Morozov discrenpancy level as Expected value of the squared norm
+% of noise vector. It is easy to check that with this choice we terminate
+% the algorithm when norm of the residual is smaller than
+% epsion=sigma*sqrt(N). The detailed derivation of Morozov epsilon-acceptance 
+% level is presented in the solution of the problem 4.
+
 sigma        = 0.05;                                                        % stdev of noise in the data
 eps          = sigma * sqrt(N);                                             % Morozov level of discrenpancy
 
-deltas       = [100 10 1 10^(-5)];                                       % experimental values of regularization parameter
+deltas       = [100 10 1 10^(-5)];                                          % experimental values of regularization parameter
 %deltas       = [10^(-5)];
 iter_bound   = 100000;
 
