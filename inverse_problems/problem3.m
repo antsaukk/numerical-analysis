@@ -65,10 +65,8 @@ for k = N1                                                                  % ma
     end
 end
 
-%figure(1)
-%stem3(N1,N2,post12');
-%title("Marginal density of X1 and X2")
 visualize_marginal(post12, N1, N2, 1, "Marginal density of X1 and X2")      % visualize
+visualize_marginal2d(post12, N1, N2, 2, "2D Marginal density of X1 and X2")
 %% Marginal posterior density of X1, X3
 post13 = zeros(length(N1), length(N3));
 
@@ -83,10 +81,8 @@ for k = N1                                                                  % ma
     end
 end
 
-%figure(3)
-%stem3(N1,N3,post13');
-%title("Marginal density of X1 and X3")
-visualize_marginal(post13, N1, N3, 2, "Marginal density of X1 and X3")
+visualize_marginal(post13, N1, N3, 3, "Marginal density of X1 and X3")
+visualize_marginal2d(post13, N1, N3, 4, "2D Marginal density of X1 and X3")
 %% Marginal posterior density of X2, X3
 post23 = zeros(length(N2), length(N3));
 
@@ -101,10 +97,8 @@ for l = N2                                                                  % ma
     end
 end
 
-%figure(5)
-%stem3(N2,N3,post23');
-%title("Marginal density of X2 and X3")
-visualize_marginal(post23, N2, N3, 3, "Marginal density of X2 and X3")
+visualize_marginal(post23, N2, N3, 5, "Marginal density of X2 and X3")
+visualize_marginal2d(post23, N2, N3, 6, "2D Marginal density of X2 and X3")
 %% Posterior function
 function post = Posterior(Y, X, N, sigma)
     n          = length(X);
@@ -128,4 +122,14 @@ function visualize_marginal(marg_dist, N, M, k, str)
     figure(k)
     stem3(N,M,marg_dist');
     title(str)
+end
+
+function visualize_marginal2d(marg_dist, N, M, k, str)
+    figure(k)
+    imagesc(marg_dist');
+    set(gca,'YDir','normal');
+    axis square
+    title(sprintf(str), ...
+            'FontSize', ...
+            14);
 end
