@@ -15,16 +15,28 @@ A          = expm(T*B);                                                     % ma
 Y          = load("assignment4.mat");                                       % loading data struct
 y          = [Y.y; zeros(N-1, 1)];                                          % noisy measurement
 
+% Since compoentns of noise vector are mutually independent,
+% normally distributed with 0 mean and sigma stdev, we can
+% estimate Morozov discrenpancy level as Expected value of the squared norm
+% of noise vector. It is easy to check that with this choice we terminate
+% the algorithm when norm of the residual is smaller than
+% epsion=sigma*sqrt(N).
+
 sigma      = 0.5;                                                           % stdev of noise in measurement data
 eps        = sigma * sqrt(N-1);                                             % acceptance level according to Morozov discrenpancy principle
 stop       = 10^(-10);                                                      % stopping criteria
 
 F_Tikhonov = zeros(1, length(Y.y));                                         % data structure to store Tikhonov functional solution
 
-N_sam      = 5000;                                                           % number of samples
+N_sam      = 5000;                                                          % number of samples
 gamma      = 5;                                                             % value of gamma parameter
 F_Gibbs    = zeros(1, length(Y.y));                                         % reconstruction from gibbs sampler
 %% (a) Solution to heat equation via Minimization of Tikhonov functional
+
+% For the sake of comparison, we also estimate grid values of initial heat
+% distribution with classical Tikhonov regularization algorithm, where
+% regularization parameter is computed with Newton method and its components 
+% are derived in homework set 2.
 
 delta = 0.1;                                                                % starting value for delta
 run   = true;
@@ -38,7 +50,7 @@ while(run)
 end
 K          = [A; sqrt(delta)*eye(N-1)];
 F_Tikhonov = K\y;                                                           % reconstructed solution
-%% (b) Solution to heat equation equation with truncated SVD and Morozov principle
+%% (b) Solution to heat equation with truncated SVD and Morozov principle
 
 [U L V] = svd(A);                                                           % svd
 diagonal = diag(L);                                                         % singular values
@@ -53,14 +65,15 @@ for n = 1:length(diagonal)
 
     F_TSVD = A_pinv_n * y;                                                  % solve inverse problem 
     
-    residual = norm(A*F_TSVD - y) - eps;                                    % compute Morozov Criteria
+    residual = abs(norm(A*F_TSVD - y) - eps);                               % compute Morozov Criteria
     residuals(n) = residual;
     if norm(A*F_TSVD - y) <= eps 
         break;
     end
     cutoff = cutoff + 1;
 end
-disp(cutoff)
+disp("Cutoff index for selection of singular values:");
+disp(cutoff);
 %% Gibbs sampler and conditional mean
 x_range   = linspace(0, 30, 100);
 Zsamples  = zeros(N_sam, N-1);
@@ -69,17 +82,17 @@ Ztemp     = zeros(size(F_Gibbs));
 tic
 for s = 1:N_sam
     for j = 1:(N-1)
-        I_line = zeros(size(x_range));  %???                                     % take jth component and evaluate cond.dist. over line
+        I_line = zeros(size(x_range));                                      % take jth component and evaluate cond.dist. over line
         for i = 1:length(I_line)
             Ztemp     = F_Gibbs;
             Ztemp(j)  = x_range(i);
             I_line(i) = PosteriorIter(Ztemp, Y.y, A, gamma, sigma);
         end
 
-        cdf              = cumsum(I_line);                                    % integrate condional density
-        cdf              = cdf/cdf(end);                                         % normalization to 1
-        tau              = rand;                                                 % sample from Unif(0,1)
-        xi               = find(tau <= cdf, 1);                                  % inverse of cdf approximated numerically
+        cdf              = cumsum(I_line);                                  % integrate condional density
+        cdf              = cdf/cdf(end);                                    % normalization to 1
+        tau              = rand;                                            % sample from Unif(0,1)
+        xi               = find(tau <= cdf, 1);                             % inverse of cdf approximated numerically
 
         F_Gibbs(j)       = x_range(xi);
     end
@@ -99,7 +112,15 @@ for i = 1:N_sam
 end
 
 indexes_of_min_mix_axes = sample_histories(Zsamples);
-indexes_of_min_mix_axes
+disp("Indexes of component with smallest and largest average");
+disp(indexes_of_min_mix_axes );
+
+% Taking into the account the sample histories of the components with largest
+% average and smallest average we observe that constructed samples do
+% not look fully random. Indeed, we can see that there is some dependency
+% in the history of sample components. Therefore, we conclude that the
+% quality of obtained reconstruction is not superior. The argument is also
+% supported by visualization of obtained conditional mean estimate reconstruction. 
 %% Plots
 figure(1);
 hold on
@@ -129,21 +150,13 @@ hold off
 
 figure(4);
 hold on
-plot(abs(residuals), 'LineWidth', 1);
-title('Residual ')
-legend('||Ax - y||')
-grid on;
-hold off
-
-figure(5);
-hold on
 plot(x, ZCM, 'LineWidth', 1);
-title('GS reconstruction of initial heat distribution')
+title('CM reconstruction of initial heat distribution')
 legend('Approximation of F obtained by sampling')
 grid on;
 hold off
 
-figure(6);
+figure(5);
 hold on
 plot(x, A*F_Tikhonov, 'LineWidth', 1);
 plot(x, A*F_TSVD, 'LineWidth', 1);
@@ -158,12 +171,12 @@ legend('A*(Tikhonov solution)', ...
 grid on;
 hold off
 
-figure(7)
+figure(6)
 hold on
 subplot(2,1,1);plot(Zsamples(:, indexes_of_min_mix_axes(1)));
-title('Sample history smallest');
+title('Sample history of component with smallest mean');
 subplot(2,1,2);plot(Zsamples(:, indexes_of_min_mix_axes(2)));
-title('Sample history largest');
+title('Sample history of component with largest mean');
 hold off
 %% Utilities
 function post = Posterior(z, y, A, gamma, sigma)
@@ -178,6 +191,7 @@ function post = Posterior(z, y, A, gamma, sigma)
     post   = pi030 * prior * likeli(y, A, z, sigma);
 end
 
+% this is the fastest way to compute Posterior
 function post = PosteriorIter(z, y, A, gamma, sigma)
     post   = 1;
     for i = 1:length(z)

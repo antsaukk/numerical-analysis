@@ -47,10 +47,14 @@ for k = N1                                                                  % co
         end
     end
 end
+
+disp(CM)
 %% MAP Estimate
 [M,I]        = max(post,[],"all","linear");                                 % compute X_MAP as argmax p(X=[k l m)^T|Y=y)
 [d1, d2, d3] = ind2sub(size(post),I);
 map          = [d1-1, d2-1, d3-1];
+
+disp(map)
 %% Marginal posterior density of X1, X2
 post12 = zeros(length(N1), length(N2));
 
@@ -99,6 +103,11 @@ end
 
 visualize_marginal(post23, N2, N3, 5, "Marginal density of X2 and X3")
 visualize_marginal2d(post23, N2, N3, 6, "2D Marginal density of X2 and X3")
+
+% On the basis of obtained results, it seems pretty likely that true value
+% of x = [1 7 8]^T and difference with obtained MAP and CM estimates can be
+% explained by presense of noise in the measurement values and ill posed
+% nature of inverse reconstruction. 
 %% Posterior function
 function post = Posterior(Y, X, N, sigma)
     n          = length(X);

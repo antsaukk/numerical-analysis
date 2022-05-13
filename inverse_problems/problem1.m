@@ -1,7 +1,7 @@
 clear all;
 close all;
 %% Preallocations
-dfdx         = @(q,x,y,i) -q*(y(i)-x(i))/norm(y-x')^2;                 % dfdx component of Jacobian
+dfdx         = @(q,x,y,i) -q*(y(i)-x(i))/norm(y-x')^2;                      % dfdx component of Jacobian
 dfdq         = @(x,y) log(norm(y-x'));                                      % dfdq component of Jacobian
 fi           = @(x1,x2,q1,q2,y) q1*log(norm(y-x1')) + q2*log(norm(y-x2'));  % function of the measurement
 
@@ -29,7 +29,7 @@ eps          = sigma * sqrt(N);                                             % Mo
 
 deltas       = [100 10 1 10^(-5)];                                          % experimental values of regularization parameter
 %deltas       = [10^(-5)];
-iter_bound   = 100000;
+iter_bound   = 10000;
 
 z            = zeros(N, 1);                                                 % preallocations of data structures required for algorithm
 I            = eye(M);
@@ -95,13 +95,13 @@ end
 % standard output. In this case, we observe that algorithm fails to attain
 % Morozov discrenpancy level and get stuck with residual being around 6.14.
 % In this case, we do the following trick: we stop the algorthm manually
-% for some reasonably large iteration bound, say 100000 and plot the
+% for some reasonably large iteration bound, say 10000 and plot the
 % resulting reconstructed solution. As we can see from the plots, the
-% result is numerical garbage meaning the for the delta = 10^(-5)
+% result is far away from the domain, meaning that for the delta = 10^(-5)
 % algorithm diverges. It is not surprising, since numerically speaking
-% 10^(-5) is small value and performing large number of matrix arithmetics
+% 10^(-5) is a small value and performing large number of matrix arithmetics
 % likely results in highly amplified floating point errors, which in fact
-% distort the reconstructed solution.
+% distorts the reconstructed solution.
 %% Visualization function
 function visualize(z, Y, delta, k, iterations)
     x1   = [z(1); z(2); z(5)];                                              % unpack the values

@@ -77,10 +77,9 @@ gammas(1)   = gamma;                                                        % in
 % avoind overfitting and it implies that gamma wont be updated either as it
 % is derived as function of Z_MAP.
 run = norm(A*z - w) > eps;                                                  % stopping according to Morozov criteria                                      
-norm(A*z - w)
 
 tic
-while(run) % how to stop?
+while(run)
     delta       = sigma^2/gamma^2;                                          % fix gamma and compute minimizer for Z_map 
     K           = [A; sqrt(delta) * eye(N)];                                % as least square solution of derived equation
     v           = [w; zeros(N, 1)];
@@ -93,6 +92,9 @@ while(run) % how to stop?
     gammas(kk)  = gamma;                                                    % record current value of gamma iterate
 end
 toc
+
+disp("gamma is:");
+disp(gamma);
 
 figure(2)
 hold on
@@ -121,6 +123,8 @@ function A = Grid1(N, axis_length, x1, x2, Y, index)
     toc
 end
 %% Function for generation Grid2
+
+% this choice of grid results in much better approximation
 function A = Grid2(N, axis_length, Y, index)
     tic
     grid        = zeros(3, N);
